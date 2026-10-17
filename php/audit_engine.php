@@ -84,7 +84,7 @@ class AuditEngine {
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT        => 15,
                 CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
-                CURLOPT_USERAGENT      => 'AccessLens/1.0 (Accessibility audit tool)',
+                CURLOPT_USERAGENT      => 'WebAudit/1.0 (Accessibility audit tool)',
                 CURLOPT_SSL_VERIFYPEER => true,   // check the site's certificate
                 CURLOPT_SSL_VERIFYHOST => 2,
             ]);

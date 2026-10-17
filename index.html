@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebAudit Pro — Accessibility Auditing Platform</title>
+    <title>WebAudit — Accessibility Auditing Tool</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -27,7 +27,7 @@
         --border2: #353a3d;
         --text: #e8eaec;
         --muted: #8a9099;
-        --muted2: #555c63;
+        --muted2: #7d848c; /* raised from #555c63 to pass WCAG 4.5:1 contrast */
         --accent: #00e5a0;
         --accent2: #00b87e;
         --red: #ff4d4d;
@@ -830,14 +830,52 @@
         background: var(--border2);
         border-radius: 3px;
       }
+      /* Skip link: hidden until focused with the keyboard (WCAG 2.4.1) */
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 16px;
+        background: var(--accent);
+        color: #000;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        z-index: 1000;
+      }
+      .skip-link:focus {
+        left: 16px;
+      }
+      /* Phones and small tablets: the sidebar becomes a top bar instead of disappearing */
       @media (max-width: 900px) {
+        .app {
+          flex-direction: column;
+        }
         .sidebar {
+          position: static;
+          width: 100%;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo {
+          padding: 16px 20px;
+        }
+        .sidebar-nav {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          padding: 8px 12px;
+        }
+        .nav-section-label,
+        .sidebar-footer {
           display: none;
+        }
+        .nav-item {
+          width: auto;
         }
         .main {
           margin-left: 0;
           max-width: 100%;
-          padding: 24px 20px;
+          padding: 24px 16px;
         }
         .stats-grid {
           grid-template-columns: 1fr 1fr;
@@ -845,10 +883,29 @@
         .two-col {
           grid-template-columns: 1fr;
         }
+        .form-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .form-group {
+          max-width: none !important;
+        }
+        .page-header {
+          flex-direction: column;
+          gap: 16px;
+        }
+        .table-card {
+          overflow-x: auto;
+        }
+        .report-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
       }
     </style>
   </head>
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="app">
       <aside class="sidebar">
         <div class="sidebar-logo">
@@ -856,7 +913,7 @@
             <div class="logo-icon">W/A</div>
             <div>
               <div class="logo-text">WebAudit</div>
-              <div class="logo-sub">Pro</div>
+              <div class="logo-sub">WCAG 2.1 AA</div>
             </div>
           </a>
         </div>
@@ -889,8 +946,8 @@
         </nav>
         <div class="sidebar-footer">
           <div class="wcag-badge">✓ WCAG 2.1 AA</div>
-          <div>MSc Dissertation Project</div>
-          <div style="margin-top: 2px">25 checks · PHP + MySQL</div>
+          <div>MSc Computing project</div>
+          <div style="margin-top: 2px">15 automated checks · PHP + MySQL</div>
         </div>
       </aside>
       <main class="main" id="main-content">
@@ -932,7 +989,7 @@
           <div class="two-col" style="margin-bottom: 28px">
             <div class="chart-card">
               <div class="chart-card-title">
-                Score trend — last 10 runs
+                Score trend: last 10 runs
                 <span
                   style="font-size: 11px; color: var(--muted); font-weight: 400"
                   >higher is better</span
@@ -1179,9 +1236,9 @@
         <section class="page" id="page-about" aria-label="About">
           <div class="page-header">
             <div>
-              <h1 class="page-title">About <em>WebAudit Pro</em></h1>
+              <h1 class="page-title">About <em>WebAudit</em></h1>
               <p class="page-subtitle">
-                MSc Computer Science Dissertation — Accessibility Research Tool
+                MSc Computing project · University of Sunderland
               </p>
             </div>
           </div>
@@ -1198,14 +1255,14 @@
                   margin-top: 16px;
                 "
               >
-                WebAudit Pro is an MSc Computer Science dissertation project. It
-                scans websites against
+                WebAudit is an accessibility auditing tool I built during my MSc
+                Computing at the University of Sunderland; it later became the
+                basis of my dissertation research. It runs 15 automated checks
+                against
                 <strong style="color: var(--text)">WCAG 2.1 Level AA</strong>,
-                tracks scores across audit runs to detect regressions, and
-                produces prioritised developer reports. Unlike WAVE, Axe, or
-                Lighthouse — which give single-point-in-time snapshots — this
-                system stores all results in MySQL and surfaces longitudinal
-                trends so developers can verify fixes held across deployments.
+                explains each issue with a suggested fix, and stores every run
+                in MySQL so you can see whether fixes held over time, not just a
+                one-off snapshot.
               </p>
             </div>
             <div class="rules-grid" style="grid-template-columns: 1fr 1fr">
@@ -1230,16 +1287,18 @@
                 <div class="rule-name">Scoring</div>
                 <div class="rule-desc" style="margin-top: 8px">
                   Starts at 100. Deductions: Critical −20 · Serious −10 ·
-                  Moderate −5 · Minor −2. Score floored at 0. Stored per run for
-                  trend analysis.
+                  Moderate −5 · Minor −2. Each rule can deduct at most three
+                  times its weight, so one repeated mistake cannot wipe out the
+                  score. Floored at 0 and stored per run for trend analysis.
                 </div>
               </div>
               <div class="rule-card">
                 <div class="rule-name">Research aim</div>
                 <div class="rule-desc" style="margin-top: 8px">
-                  Automate WCAG 2.1 AA auditing across 25 criteria, detect score
-                  regressions over time, and evaluate impact on developer
-                  remediation speed through a user study.
+                  Automate WCAG 2.1 AA auditing with 15 automated checks across
+                  a catalogue of 25 criteria, detect score regressions over
+                  time, and evaluate impact on developer remediation speed
+                  through a user study.
                 </div>
               </div>
               <div class="rule-card">
@@ -1263,455 +1322,8 @@
     ></div>
 
     <script>
-      const DEMO_RUNS = [
-        {
-          id: 1,
-          url_audited: "https://example.com",
-          score: 62,
-          status: "completed",
-          total_issues: 14,
-          critical_count: 3,
-          serious_count: 5,
-          moderate_count: 4,
-          minor_count: 2,
-          created_at: "2025-10-14 09:22:00",
-          project_name: "Default Project",
-        },
-        {
-          id: 2,
-          url_audited: "https://gov.uk",
-          score: 88,
-          status: "completed",
-          total_issues: 4,
-          critical_count: 0,
-          serious_count: 1,
-          moderate_count: 2,
-          minor_count: 1,
-          created_at: "2025-10-15 14:05:00",
-          project_name: "Default Project",
-        },
-        {
-          id: 3,
-          url_audited: "https://bbc.co.uk",
-          score: 74,
-          status: "completed",
-          total_issues: 9,
-          critical_count: 1,
-          serious_count: 3,
-          moderate_count: 3,
-          minor_count: 2,
-          created_at: "2025-10-16 11:30:00",
-          project_name: "Default Project",
-        },
-      ];
-      const DEMO_ISSUES = [
-        {
-          rule_code: "1.1.1",
-          rule_name: "Non-text Content",
-          severity: "critical",
-          principle: "Perceivable",
-          level: "A",
-          element_type: "img",
-          context: "Image is missing an alt attribute entirely.",
-          fix_suggestion:
-            'Add alt="" for decorative images or a descriptive alt="..." for informative ones.',
-          element_html: '<img src="/hero.jpg">',
-        },
-        {
-          rule_code: "2.4.2",
-          rule_name: "Page Titled",
-          severity: "critical",
-          principle: "Operable",
-          level: "A",
-          element_type: "title",
-          context: "Page is missing a <title> element.",
-          fix_suggestion:
-            "Add a descriptive <title> tag inside <head>. Each page should have a unique title.",
-          element_html: "",
-        },
-        {
-          rule_code: "4.1.2",
-          rule_name: "Name, Role, Value",
-          severity: "critical",
-          principle: "Robust",
-          level: "A",
-          element_type: "button",
-          context: "Button has no accessible name (empty text, no aria-label).",
-          fix_suggestion:
-            "Add descriptive text content or an aria-label attribute to every <button>.",
-          element_html:
-            '<button onclick="submit()"><img src="arrow.svg"></button>',
-        },
-        {
-          rule_code: "1.4.3",
-          rule_name: "Contrast (Minimum)",
-          severity: "serious",
-          principle: "Perceivable",
-          level: "AA",
-          element_type: "p",
-          context:
-            "Inline style suggests white text on white background — likely contrast failure.",
-          fix_suggestion:
-            "Ensure text-to-background contrast ratio is at least 4.5:1.",
-          element_html: '<p style="color:#fff;background:#fff">Text</p>',
-        },
-        {
-          rule_code: "2.1.1",
-          rule_name: "Keyboard",
-          severity: "serious",
-          principle: "Operable",
-          level: "A",
-          element_type: "div",
-          context:
-            "<div> with onclick has no tabindex or ARIA role — keyboard users cannot activate it.",
-          fix_suggestion:
-            'Use a <button> element instead. If div is unavoidable, add role="button", tabindex="0", and a keydown handler.',
-          element_html: '<div onclick="doThing()">Click me</div>',
-        },
-        {
-          rule_code: "2.4.4",
-          rule_name: "Link Purpose",
-          severity: "serious",
-          principle: "Operable",
-          level: "A",
-          element_type: "a",
-          context: 'Link text "click here" is non-descriptive.',
-          fix_suggestion:
-            'Use descriptive link text that explains the destination, e.g. "Download 2024 annual report (PDF)".',
-          element_html: '<a href="/report.pdf">click here</a>',
-        },
-        {
-          rule_code: "1.3.1",
-          rule_name: "Info and Relationships",
-          severity: "serious",
-          principle: "Perceivable",
-          level: "A",
-          element_type: "input",
-          context:
-            "Form input has no associated <label>, aria-label, or aria-labelledby.",
-          fix_suggestion:
-            'Add a <label for="inputId"> element or aria-label attribute to the input.',
-          element_html: '<input type="email" placeholder="Your email">',
-        },
-        {
-          rule_code: "3.1.1",
-          rule_name: "Language of Page",
-          severity: "serious",
-          principle: "Understandable",
-          level: "A",
-          element_type: "html",
-          context: "The <html> element is missing a lang attribute.",
-          fix_suggestion:
-            'Add a valid BCP 47 language tag, e.g. <html lang="en">.',
-          element_html: "<html>",
-        },
-        {
-          rule_code: "2.4.6",
-          rule_name: "Headings and Labels",
-          severity: "moderate",
-          principle: "Operable",
-          level: "AA",
-          element_type: "h2",
-          context: "Empty heading element <h2> detected.",
-          fix_suggestion:
-            "Remove empty headings or add descriptive text content.",
-          element_html: "<h2></h2>",
-        },
-        {
-          rule_code: "1.4.10",
-          rule_name: "Reflow",
-          severity: "moderate",
-          principle: "Perceivable",
-          level: "AA",
-          element_type: "meta",
-          context: "Viewport meta tag disables user zoom.",
-          fix_suggestion:
-            "Remove user-scalable=no and set maximum-scale to at least 5.0.",
-          element_html:
-            '<meta name="viewport" content="width=device-width,user-scalable=no">',
-        },
-        {
-          rule_code: "3.3.1",
-          rule_name: "Error Identification",
-          severity: "moderate",
-          principle: "Understandable",
-          level: "A",
-          element_type: "input",
-          context:
-            "Required input has no aria-describedby or aria-errormessage.",
-          fix_suggestion:
-            'Add aria-describedby="errorId" to the input and a <span id="errorId" role="alert"> for error messages.',
-          element_html: '<input required type="text" name="name">',
-        },
-        {
-          rule_code: "2.4.7",
-          rule_name: "Focus Visible",
-          severity: "moderate",
-          principle: "Operable",
-          level: "AA",
-          element_type: "a",
-          context:
-            "Inline outline:none detected — removes visible keyboard focus indicator.",
-          fix_suggestion:
-            "Never remove the focus outline without providing an equivalent styled replacement.",
-          element_html: '<a href="/" style="outline:none">Home</a>',
-        },
-        {
-          rule_code: "1.4.4",
-          rule_name: "Resize Text",
-          severity: "minor",
-          principle: "Perceivable",
-          level: "AA",
-          element_type: "span",
-          context:
-            "Inline fixed px font size detected — may prevent users from resizing text.",
-          fix_suggestion:
-            "Use rem or em units for font sizes to respect user browser settings.",
-          element_html: '<span style="font-size:11px">Small text</span>',
-        },
-        {
-          rule_code: "2.4.1",
-          rule_name: "Bypass Blocks",
-          severity: "minor",
-          principle: "Operable",
-          level: "A",
-          element_type: "a",
-          context:
-            "First link on page does not appear to be a skip navigation link.",
-          fix_suggestion:
-            'Add <a href="#main-content" class="skip-link">Skip to main content</a> as the first element in <body>.',
-          element_html: '<a href="/about">About us</a>',
-        },
-      ];
-      const DEMO_RULES = [
-        {
-          rule_code: "1.1.1",
-          rule_name: "Non-text Content",
-          principle: "Perceivable",
-          level: "A",
-          description: "All non-text content has a text alternative.",
-          how_to_fix: "Add descriptive alt attributes to all <img> tags.",
-        },
-        {
-          rule_code: "1.2.1",
-          rule_name: "Audio-only / Video-only",
-          principle: "Perceivable",
-          level: "A",
-          description: "Provide alternatives for time-based media.",
-          how_to_fix: "Provide a transcript for audio-only content.",
-        },
-        {
-          rule_code: "1.3.1",
-          rule_name: "Info and Relationships",
-          principle: "Perceivable",
-          level: "A",
-          description:
-            "Structure conveyed through presentation can be programmatically determined.",
-          how_to_fix:
-            "Use semantic HTML elements (headings, lists, tables with headers).",
-        },
-        {
-          rule_code: "1.3.2",
-          rule_name: "Meaningful Sequence",
-          principle: "Perceivable",
-          level: "A",
-          description:
-            "Correct reading sequence can be programmatically determined.",
-          how_to_fix: "Ensure DOM order reflects visual reading order.",
-        },
-        {
-          rule_code: "1.3.3",
-          rule_name: "Sensory Characteristics",
-          principle: "Perceivable",
-          level: "A",
-          description:
-            "Instructions do not rely solely on shape, colour, size or position.",
-          how_to_fix: "Supplement sensory references with text labels.",
-        },
-        {
-          rule_code: "1.4.1",
-          rule_name: "Use of Colour",
-          principle: "Perceivable",
-          level: "A",
-          description:
-            "Colour is not the only visual means of conveying information.",
-          how_to_fix:
-            "Always pair colour cues with icons, patterns, or text labels.",
-        },
-        {
-          rule_code: "1.4.2",
-          rule_name: "Audio Control",
-          principle: "Perceivable",
-          level: "A",
-          description:
-            "Provide a mechanism to pause or stop auto-playing audio.",
-          how_to_fix:
-            "Add visible play/pause controls to any auto-playing audio.",
-        },
-        {
-          rule_code: "1.4.3",
-          rule_name: "Contrast (Minimum)",
-          principle: "Perceivable",
-          level: "AA",
-          description:
-            "Text has a contrast ratio of at least 4.5:1 (3:1 for large text).",
-          how_to_fix:
-            "Use a contrast checker and adjust foreground/background colour pairs.",
-        },
-        {
-          rule_code: "1.4.4",
-          rule_name: "Resize Text",
-          principle: "Perceivable",
-          level: "AA",
-          description:
-            "Text can be resized up to 200% without loss of content.",
-          how_to_fix:
-            "Use relative units (rem, em, %) instead of fixed px for font sizes.",
-        },
-        {
-          rule_code: "1.4.5",
-          rule_name: "Images of Text",
-          principle: "Perceivable",
-          level: "AA",
-          description: "Use text rather than images of text wherever possible.",
-          how_to_fix:
-            "Replace text-in-images with real HTML text styled with CSS.",
-        },
-        {
-          rule_code: "1.4.10",
-          rule_name: "Reflow",
-          principle: "Perceivable",
-          level: "AA",
-          description:
-            "Content can be presented without horizontal scrolling at 320px width.",
-          how_to_fix: "Use responsive layouts; avoid fixed-width containers.",
-        },
-        {
-          rule_code: "1.4.11",
-          rule_name: "Non-text Contrast",
-          principle: "Perceivable",
-          level: "AA",
-          description:
-            "UI components and graphical objects have a contrast ratio of at least 3:1.",
-          how_to_fix: "Ensure borders on inputs and icons meet 3:1 contrast.",
-        },
-        {
-          rule_code: "1.4.12",
-          rule_name: "Text Spacing",
-          principle: "Perceivable",
-          level: "AA",
-          description: "No loss of content when text spacing is adjusted.",
-          how_to_fix: "Avoid fixed heights on containers holding text.",
-        },
-        {
-          rule_code: "2.1.1",
-          rule_name: "Keyboard",
-          principle: "Operable",
-          level: "A",
-          description: "All functionality available via keyboard.",
-          how_to_fix:
-            "Ensure every interactive element is focusable and operable with keyboard.",
-        },
-        {
-          rule_code: "2.1.2",
-          rule_name: "No Keyboard Trap",
-          principle: "Operable",
-          level: "A",
-          description: "Keyboard focus is never locked.",
-          how_to_fix: "Ensure modals and widgets allow focus to escape.",
-        },
-        {
-          rule_code: "2.4.1",
-          rule_name: "Bypass Blocks",
-          principle: "Operable",
-          level: "A",
-          description: "A mechanism exists to skip repeated blocks.",
-          how_to_fix:
-            "Add a skip-to-main-content link as the first focusable element.",
-        },
-        {
-          rule_code: "2.4.2",
-          rule_name: "Page Titled",
-          principle: "Operable",
-          level: "A",
-          description: "Pages have descriptive titles.",
-          how_to_fix: "Provide a unique, descriptive <title> for every page.",
-        },
-        {
-          rule_code: "2.4.3",
-          rule_name: "Focus Order",
-          principle: "Operable",
-          level: "A",
-          description: "Focus order preserves meaning and operability.",
-          how_to_fix: "Ensure tabindex values reflect logical reading order.",
-        },
-        {
-          rule_code: "2.4.4",
-          rule_name: "Link Purpose",
-          principle: "Operable",
-          level: "A",
-          description: "Purpose of each link can be determined from link text.",
-          how_to_fix: 'Avoid generic link text like "click here".',
-        },
-        {
-          rule_code: "2.4.6",
-          rule_name: "Headings and Labels",
-          principle: "Operable",
-          level: "AA",
-          description: "Headings and labels are descriptive.",
-          how_to_fix: "Use unique, meaningful heading text.",
-        },
-        {
-          rule_code: "2.4.7",
-          rule_name: "Focus Visible",
-          principle: "Operable",
-          level: "AA",
-          description:
-            "Any keyboard operable interface has visible focus indicator.",
-          how_to_fix:
-            "Never suppress the default outline without a styled alternative.",
-        },
-        {
-          rule_code: "3.1.1",
-          rule_name: "Language of Page",
-          principle: "Understandable",
-          level: "A",
-          description:
-            "Default language of page can be programmatically determined.",
-          how_to_fix: "Set a valid lang attribute on the <html> element.",
-        },
-        {
-          rule_code: "3.2.1",
-          rule_name: "On Focus",
-          principle: "Understandable",
-          level: "A",
-          description:
-            "Receiving focus does not trigger unexpected context change.",
-          how_to_fix: "Avoid onFocus handlers that navigate away.",
-        },
-        {
-          rule_code: "3.3.1",
-          rule_name: "Error Identification",
-          principle: "Understandable",
-          level: "A",
-          description: "Input errors are identified and described in text.",
-          how_to_fix:
-            "Display descriptive error messages linked to the field via aria-describedby.",
-        },
-        {
-          rule_code: "4.1.2",
-          rule_name: "Name, Role, Value",
-          principle: "Robust",
-          level: "A",
-          description:
-            "All UI components have accessible name, role, and value.",
-          how_to_fix:
-            "Use semantic HTML; add aria-label where native semantics are insufficient.",
-        },
-      ];
-
-      let allRuns = [...DEMO_RUNS];
-      let allRules = [...DEMO_RULES];
+      let allRuns = [];
+      let allRules = [];
       let trendChart = null,
         sevChart = null;
 
@@ -1727,15 +1339,17 @@
         if (nav) nav.classList.add("active");
         if (name === "dashboard") loadDashboard();
         if (name === "history") loadHistory();
-        if (name === "rules") renderRules(allRules);
+        if (name === "rules") loadRules();
         if (name === "audit") loadChecksTable();
       }
 
+      async function loadRules() {
+        allRules = await callApi("rules");
+        renderRules(Array.isArray(allRules) ? allRules : []);
+      }
+
       async function callApi(endpoint, method = "GET", body = null) {
-        // Switch DEMO_MODE to false and set API_BASE to use real PHP backend
-        const DEMO_MODE = false;
         const API_BASE = "./php/api.php";
-        if (DEMO_MODE) return demoApi(endpoint, method, body);
         const opts = {
           method,
           headers: { "Content-Type": "application/json" },
@@ -1745,87 +1359,9 @@
         return res.json();
       }
 
-      function demoApi(endpoint, method, body) {
-        if (endpoint.startsWith("runs")) return Promise.resolve(allRuns);
-        if (endpoint.startsWith("trends"))
-          return Promise.resolve(
-            allRuns.map((r) => ({
-              score: r.score,
-              critical_count: r.critical_count,
-              serious_count: r.serious_count,
-              recorded_at: r.created_at,
-            })),
-          );
-        if (endpoint.startsWith("report"))
-          return Promise.resolve({
-            run: DEMO_RUNS[0],
-            issues: DEMO_ISSUES,
-            trends: allRuns.map((r) => ({
-              score: r.score,
-              critical_count: r.critical_count,
-              serious_count: r.serious_count,
-              recorded_at: r.created_at,
-            })),
-          });
-        if (endpoint === "rules") return Promise.resolve(DEMO_RULES);
-        if (method === "POST" && endpoint === "audit")
-          return simulateAudit(body);
-        return Promise.resolve({});
-      }
-
-      async function simulateAudit(body) {
-        return new Promise((resolve) => {
-          const steps = [
-            "Fetching HTML document…",
-            "Parsing DOM structure…",
-            "Checking image alt attributes…",
-            "Verifying form labels…",
-            "Checking keyboard accessibility…",
-            "Validating ARIA roles…",
-            "Analysing heading structure…",
-            "Checking viewport configuration…",
-            "Testing focus indicators…",
-            "Checking link text quality…",
-            "Verifying page language…",
-            "Calculating score…",
-            "Saving to database…",
-          ];
-          let i = 0;
-          const iv = setInterval(() => {
-            if (i < steps.length) {
-              document.getElementById("progress-fill").style.width =
-                Math.round(((i + 1) / steps.length) * 100) + "%";
-              document.getElementById("progress-label").textContent = steps[i];
-              i++;
-            } else {
-              clearInterval(iv);
-              const nr = {
-                id: Date.now(),
-                url_audited: body.url,
-                score: Math.floor(Math.random() * 50) + 40,
-                status: "completed",
-                total_issues: Math.floor(Math.random() * 15) + 3,
-                critical_count: Math.floor(Math.random() * 4),
-                serious_count: Math.floor(Math.random() * 6),
-                moderate_count: Math.floor(Math.random() * 5),
-                minor_count: Math.floor(Math.random() * 3),
-                created_at: new Date().toISOString(),
-                project_name: "Default Project",
-              };
-              allRuns.unshift(nr);
-              resolve({
-                success: true,
-                run_id: nr.id,
-                score: nr.score,
-                issues: nr.total_issues,
-              });
-            }
-          }, 280);
-        });
-      }
-
       async function loadDashboard() {
         const runs = await callApi("runs/1");
+        if (!Array.isArray(runs)) return; // API error: keep the empty state
         allRuns = runs;
         document.getElementById("stat-total").textContent = runs.length;
         document.getElementById("stat-projects").textContent = 1;
@@ -1840,7 +1376,7 @@
             )
           : "–";
         renderRecentTable(runs.slice(0, 8));
-        renderTrendChart(runs.slice(-10).reverse());
+        renderTrendChart(runs.slice(0, 10).reverse());
         renderSeverityChart(runs[0]);
       }
 
@@ -1965,9 +1501,9 @@
         const prog = document.getElementById("audit-progress");
         btn.disabled = true;
         prog.style.display = "block";
-        document.getElementById("progress-fill").style.width = "0%";
+        document.getElementById("progress-fill").style.width = "60%";
         document.getElementById("progress-label").textContent =
-          "Starting audit…";
+          "Fetching and checking the page… this can take up to 15 seconds";
         try {
           const result = await callApi("audit", "POST", {
             url,
@@ -1976,7 +1512,7 @@
           });
           if (result.success) {
             toast(
-              ` Audit complete — score: ${result.score}/100, ${result.issues} issues found`,
+              `Audit complete — score: ${result.score}/100, ${result.issues} issues found`,
               "success",
             );
             setTimeout(() => viewReport(result.run_id), 800);
@@ -1993,8 +1529,8 @@
 
       async function loadHistory() {
         const runs = await callApi("runs/1");
-        allRuns = runs;
-        renderHistoryTable(runs);
+        allRuns = Array.isArray(runs) ? runs : [];
+        renderHistoryTable(allRuns);
       }
 
       function filterHistory(status, btn) {
@@ -2025,6 +1561,11 @@
           .querySelectorAll(".nav-item")
           .forEach((n) => n.classList.remove("active"));
         const data = await callApi("report/" + runId);
+        if (!data.run) {
+          document.getElementById("report-content").innerHTML =
+            '<div class="empty-state"><div class="empty-sub">Report not found</div></div>';
+          return;
+        }
         const { run, issues, trends } = data;
         document.getElementById("report-url-display").textContent =
           run.url_audited || "";
@@ -2042,7 +1583,7 @@
               : issues.filter((i) => i.severity === filter);
           if (!fi.length)
             return '<div class="empty-state"><div class="empty-sub">No issues at this severity level</div></div>';
-          return `<div class="issues-grid">${fi.map((issue, idx) => `<div class="issue-card" id="ic-${idx}"><div class="issue-card-header" onclick="toggleIssue('ic-${idx}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')toggleIssue('ic-${idx}')" aria-expanded="false"><span class="pill pill-${issue.severity}"><span class="pill-dot"></span>${issue.severity}</span><span class="issue-rule">${esc(issue.rule_code)}</span><span class="issue-name">${esc(issue.rule_name)}</span><span class="issue-element">&lt;${esc(issue.element_type || "el")}&gt;</span><span style="color:var(--muted2);font-size:13px;margin-left:4px">▾</span></div><div class="issue-body"><div class="issue-section-label">What was found</div><div class="issue-context">${esc(issue.context)}</div>${issue.element_html ? `<div class="issue-section-label">Offending element</div><div class="code-block">${esc(issue.element_html)}</div>` : ""}<div class="issue-section-label">How to fix</div><div class="fix-block">${esc(issue.fix_suggestion || issue.how_to_fix || "")}</div><div style="margin-top:10px;font-size:11px;color:var(--muted2)">WCAG ${esc(issue.rule_code)} · Principle: ${esc(issue.principle || "")} · Level ${esc(issue.level || "")}</div></div></div>`).join("")}</div>`;
+          return `<div class="issues-grid">${fi.map((issue, idx) => `<div class="issue-card" id="ic-${idx}"><div class="issue-card-header" onclick="toggleIssue('ic-${idx}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleIssue('ic-${idx}')}" aria-expanded="false"><span class="pill pill-${issue.severity}"><span class="pill-dot"></span>${issue.severity}</span><span class="issue-rule">${esc(issue.rule_code)}</span><span class="issue-name">${esc(issue.rule_name)}</span><span class="issue-element">&lt;${esc(issue.element_type || "el")}&gt;</span><span style="color:var(--muted2);font-size:13px;margin-left:4px">▾</span></div><div class="issue-body"><div class="issue-section-label">What was found</div><div class="issue-context">${esc(issue.context)}</div>${issue.element_html ? `<div class="issue-section-label">Offending element</div><div class="code-block">${esc(issue.element_html)}</div>` : ""}<div class="issue-section-label">How to fix</div><div class="fix-block">${esc(issue.fix_suggestion || issue.how_to_fix || "")}</div><div style="margin-top:10px;font-size:11px;color:var(--muted2)">WCAG ${esc(issue.rule_code)} · Principle: ${esc(issue.principle || "")} · Level ${esc(issue.level || "")}</div></div></div>`).join("")}</div>`;
         }
         window._renderIssues = renderIssues;
 
@@ -2064,7 +1605,7 @@
         </div>
       </div>
     </div>
-    ${trends && trends.length > 1 ? `<div class="chart-card"><div class="chart-card-title">Score history for this project</div><div class="chart-wrap"><canvas id="rTrendChart" aria-label="Score history"></canvas></div></div>` : ""}
+    ${trends && trends.length > 1 ? `<div class="chart-card"><div class="chart-card-title">Score history for this URL</div><div class="chart-wrap"><canvas id="rTrendChart" aria-label="Score history"></canvas></div></div>` : ""}
     <div style="margin-bottom:16px">
       <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Issues found <span style="color:var(--muted);font-weight:400;font-size:13px">(click to expand)</span></div>
       <div class="filter-bar" id="report-filter-bar" role="group" aria-label="Filter issues">
